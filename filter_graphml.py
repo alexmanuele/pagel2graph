@@ -35,7 +35,12 @@ if __name__=='__main__':
         print("Node {} was not found in the graph. Please double check spelling of the node and file path.")
         exit()
 
-    H = nx.Graph(((u, v, e) for u,v,e in G.edges(data=True) if e['lr'] >= lr_threshold and e['p'] <= p_threshold))
+    edges = []
+    for u,v,e in G.edges(data=True):
+        if e['lr'] >= lr_threshold and e['p'] <= p_threshold:
+            edges.append((u,v))
+
+    H = G.edge_subgraph(edges)
 
     try:
         selected = neighborhood(H, node, degree)
