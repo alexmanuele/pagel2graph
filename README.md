@@ -54,7 +54,9 @@ pagel_results_as_network_updated.graphml
 ##### Usage
 Once your data is configured properly, usage is simple.
 Open a terminal with your conda environment activated and type:
+
 `python interactive_app.py`
+
 This will launch the Dash server. Then, simply open your favorite web browser and navigate to http://localhost:8050/ .
 
 
