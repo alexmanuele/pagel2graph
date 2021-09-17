@@ -47,7 +47,7 @@ def basic_dash_network():
     node_items = [{'label': col, 'value': col} for col in ava_lr.columns]
 
 
-    G = nx.graphml.read_graphml('data/pagel_results_as_network.graphml')
+    G = nx.graphml.read_graphml('data/pagel_results_as_network_updated.graphml')
     node = 'AA893'
     degree = 2
     lr_threshold = 50
