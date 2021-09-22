@@ -1,9 +1,6 @@
 # pagel2graph
 Tools for converting Pagel results to GraphML format and subsequently filter the GraphML.
 
-## Requirements
-Requires pandas and networkx.
-
 ## Installation
 Installation not currently supported for Windows.
 
