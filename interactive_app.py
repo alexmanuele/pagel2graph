@@ -13,11 +13,21 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
 
+# Load extra layouts
+cyto.load_extra_layouts()
 
-def nx_to_dash(G):
+def nx_to_dash(G, node):
     nodes = []
     for n in G.nodes:
-        nodes.append({'data': {'id':n, 'label':n, **G.nodes[n]}})
+        if n == node:
+            nodes.append({
+                        'data': {'id':n, 'label':n, **G.nodes[n]},
+                        'classes': 'focal',
+            })
+        else:
+            nodes.append({'data': {'id':n, 'label':n, **G.nodes[n]},
+                        'classes':'other',
+            })
     edges = []
     for e in G.edges:
         edges.append({'data': {'source': e[0], 'target': e[1], **G.edges[e]}})
@@ -38,6 +48,38 @@ def filter_graph(G, node, d, lr_threshold, p_threshold):
         return H.subgraph(neighborhood(H, node, d))
     return G.subgraph([node])
 
+default_stylesheet = [
+                        {
+                            'selector':'edge',
+                            'style': {
+                                'width': 'mapData(lr, 50, 200, 0.75, 5)',
+                                'opacity': 0.4,
+                            },
+                        },
+                        {'selector': 'node',
+                            'style':{
+                                #'color': '#317b75',
+                                'background-color': '#317b75',
+                                'content': 'data(label)',
+                            },
+                        },
+                        {
+                            'selector': '.focal',
+                            'style':{
+                                #'color': '#E65340',
+                                'background-color': '#E65340',
+                                'content': 'data(label)',
+                            },
+                        },
+                        {'selector': '.other',
+                            'style':{
+                                #'color': '#317b75',
+                                'background-color': '#317b75',
+                                'content': 'data(label)',
+                            },
+                        },
+                        ]
+
 def basic_dash_network():
     ava_lr = pd.read_table('data/efaecium_profile_LR_rerunNA.csv', sep=',', index_col=0)
     ava_p = pd.read_table('data/efaecium_profile_pval_rerunNA.csv', sep=',', index_col=0)
@@ -53,8 +95,7 @@ def basic_dash_network():
     lr_threshold = 50
     p_threshold = 0.0001
     H = filter_graph(G, node, degree, lr_threshold, p_threshold)
-    # Graph basics
-    elements = nx_to_dash(H)
+    elements = nx_to_dash(H, 'node')
 
 
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -69,17 +110,18 @@ def basic_dash_network():
             html.H3(children="Pagel Heatmap"),
             dbc.FormGroup([
                 dbc.Label("Choose Metric"),
-                dcc.Dropdown(id="dataset-select", value=1,
-                             options=[{"label": "Likelihood Ratio", "value": 1},
-                                      {"label": "P Value", "value": 2},])
-
-                ]),
-
+                dcc.Dropdown(
+                    id="dataset-select", value=1,
+                    options=[
+                        {"label": "Likelihood Ratio", "value": 1},
+                        {"label": "P Value", "value": 2},])
+                    ]
+                ),
             dbc.Button('Update Plot', id='example-button', color='primary', style={'margin-bottom': '1em'}, block=True),
             dbc.Row([
                 dbc.Col(dcc.Graph(id='example-graph')),  # Not including fig here because it will be generated with the callback
             ])
-        ], lg=6, md=12, className="bg-light text-dark"),
+        ], lg=3, md=12, className="bg-light text-dark"),
 
         #<! -- Network plot -- >
         dbc.Col([
@@ -94,7 +136,20 @@ def basic_dash_network():
                             clearable=False,
                             options=[
                                 {'label': name.capitalize(), 'value': name}
-                                for name in ['grid', 'random', 'circle', 'cose', 'concentric']
+                                #for name in ['grid', 'random', 'circle', 'cose', 'concentric', 'breadthfirst']
+                                for name in [                         
+                                    'random',
+                                    'grid',
+                                    'circle',
+                                    'concentric',
+                                    'breadthfirst',
+                                    'cose',
+                                    'cose-bilkent',
+                                    'cola',
+                                    'klay',
+                                    'spread',
+                                    'euler'
+                                ]
                             ], className="bg-light text-dark",
                         ),
                         ]),
@@ -110,17 +165,22 @@ def basic_dash_network():
                         ]),
                         dbc.Col([
                             dbc.Label('Select thresholding values'),
-                            dbc.Input(id='degree',
-                                     placeholder='Degree (depth of neighborhood)',
-                                     type='number', min=0, step=1, value=2),
+                            dbc.Input(
+                                    id='degree',
+                                    placeholder='Degree (depth of neighborhood)',
+                                    type='number', min=0, step=1, value=2
+                                    ),
                             dbc.FormText('Degree (depth of neighborhood)'),
-                            dbc.Input(id='lr-threshold',
-                                      placeholder="Likelihood Ratio lower bound",
-                                      type='number', min=0, value=50.0),
+                            dbc.Input(
+                                id='lr-threshold',
+                                placeholder="Likelihood Ratio lower bound",
+                                type='number', min=0, value=50.0
+                                ),
                             dbc.FormText('Likelihood Ratio lower bound'),
-                            dbc.Input(id='p-threshold',
-                                      placeholder="p-value upper bound",
-                                      type='number', min=0, value=0.05),
+                            dbc.Input(
+                                    id='p-threshold',
+                                    placeholder="p-value upper bound",
+                                    type='number', min=0, value=0.05),
                             dbc.FormText("p-value upper bound")
                         ]),
                     ]),
@@ -128,16 +188,17 @@ def basic_dash_network():
                     dbc.Button('Update iPlot', id='interactive-button', color='success', style={'margin-bottom': '1em'}, block=True),
                 ]),
 
-                dbc.Col(width=6,
-                  children=dbc.Card(
-                  [
-                    dbc.CardHeader("Network Properties", className="bg-success text-white"),
-                    dbc.CardBody(
-                        html.P("Lorem Ipsum and all that.", className='card-text text-dark',
-                        id='node-selected')
-                    )
-
-                  ])
+                dbc.Col(
+                        width=6,
+                        children=dbc.Card(
+                            [
+                                dbc.CardHeader("Network Properties", className="bg-success text-white"),
+                                dbc.CardBody(
+                                    html.P("Lorem Ipsum and all that.", className='card-text text-dark',
+                                    id='node-selected')
+                                )   
+                            ]
+                        )
                 ),
             ]),
             dbc.Row([
@@ -145,26 +206,26 @@ def basic_dash_network():
                 dbc.Col(cyto.Cytoscape(
                     id='network-plot',
                     elements=elements,
-                    style={'width': '100%', 'height': '400px'},
+                    stylesheet=default_stylesheet,
+                    style={'width': '100%', 'height': '800px'},
                     layout={
                         'name': 'grid'
-                    }
-                )),
+                    },
+                ),className='bg-white'),
 
             ]),
-        ], lg=6, md=12, className='bg-secondary text-white')
+        ], lg=9, md=12, className='bg-secondary text-white')
     ]) # </row>
 
     ],)#</container>
 
 
-    #Make the plot for the 3 datasets (plot 1, i suppose)
+    #plot heatmaps
     @app.callback(
         Output('example-graph', 'figure'),
         [Input('example-button', 'n_clicks'),
         State('dataset-select', 'value'),]
     )
-
     def plot(click, dataset):
         df_map = {'1': ava_lr,
                   '2': ava_p,}
@@ -199,7 +260,7 @@ def basic_dash_network():
         n_edges = 0
         H = filter_graph(G, node, degree, lr_threshold, p_threshold)
         # Graph basics
-        elements = nx_to_dash(H)
+        elements = nx_to_dash(H, node)
         n_nodes = len(H.nodes)
         n_edges = len(H.edges)
 
@@ -216,7 +277,88 @@ def basic_dash_network():
             ],
         )
         return elements, summary
+    @app.callback(Output('network-plot', 'stylesheet'),
+                [Input('network-plot', 'tapNode')])
+    def highlight_edges(node):
+        if not node:
+            return default_stylesheet
+        
+        stylesheet = [
+                            {
+                                'selector':'edge',
+                                'style': {
+                                    'opacity': 0.4,
+                                    'width': 'mapData(lr, 50, 200, 0.75, 5)',
+                                },
+                            },
+                            {'selector': 'node',
+                                'style':{
+                                    #'color': '#317b75',
+                                    'background-color': '#317b75',
+                                    'content': 'data(label)',
+                                    'width': 'mapData(degree, 1, 100, 25, 200)'
+                                },
+                            },
+                            {
+                                'selector': '.focal',
+                                'style':{
+                                    #'color': '#E65340',
+                                    'background-color': '#E65340',
+                                    'content': 'data(label)',
+                                },
+                            },
+                            {'selector': '.other',
+                                'style':{
+                                    #'color': '#317b75',
+                                    'background-color': '#317b75',
+                                    'content': 'data(label)',
+                                },
+                            },
+                            {
+                                "selector": 'node[id = "{}"]'.format(node['data']['id']),
+                                "style": {
+                                    'background-color': '#B10DC9',
+                                    "border-color": "purple",
+                                    "border-width": 2,
+                                    "border-opacity": 1,
+                                    "opacity": 1,
+
+                                    "label": "data(label)",
+                                    "color": "#B10DC9",
+                                    "text-opacity": 1,
+                                    "font-size": 12,
+                                    'z-index': 9999
+                                }
+                            }
+                        ]
+        for edge in node['edgesData']:
+            stylesheet.append({
+                'selector': 'node[id= "{}"]'.format(edge['target']),
+                'style': {
+                    'background-color': 'blue',
+                    'opacity': 0.9,
+
+                }
+            })
+            stylesheet.append({
+                'selector': 'node[id= "{}"]'.format(edge['source']),
+                'style': {
+                    'background-color': 'blue',
+                    'opacity': 0.9,
+
+                }
+            })
+            stylesheet.append({
+                "selector": 'edge[id= "{}"]'.format(edge['id']),
+                "style": {
+                    "line-color": 'green',
+                    'opacity': 0.9,
+                    'z-index': 5000
+                }
+            })
+        return stylesheet
     return app
+
 
 
 if __name__ == "__main__":
