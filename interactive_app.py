@@ -5,6 +5,9 @@ import networkx as nx
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.figure_factory as ff
+
+import dendropy
 
 import dash
 from dash.dependencies import Output, Input, State
@@ -81,6 +84,7 @@ default_stylesheet = [
                         ]
 
 def basic_dash_network():
+    #Load files for network
     ava_lr = pd.read_table('data/efaecium_profile_LR_rerunNA.csv', sep=',', index_col=0)
     ava_p = pd.read_table('data/efaecium_profile_pval_rerunNA.csv', sep=',', index_col=0)
     ave_lr = pd.read_table('data/pagel_LR_featureVsHabitat.csv', sep=',', index_col=0)
@@ -97,13 +101,30 @@ def basic_dash_network():
     H = filter_graph(G, node, degree, lr_threshold, p_threshold)
     elements = nx_to_dash(H, 'node')
 
+    #Load files for heatmap thingy
+    """
+    df = pd.read_table('data/haley_map/Efaecium_ordered_PA_table_Pagel_Aug92021.csv', sep=',')
+    df = df.set_index('Isolate')
+    #Load the tree, root it, convert to distance matrix
+    tree = dendropy.Tree.get(path='data/haley_map/core_gene_alignment.aln.treefile', schema='newick')
+    pdm = tree.phylogenetic_distance_matrix()
+    table = pdm.as_data_table()
+    table.write_csv('dendropy_matrix.csv')
+    matr = pd.read_table('dendropy_matrix.csv', sep=',', index_col=0)
 
-    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    #drop the outgroup since there is no gene info for it.
+    dist = matr.drop(list(set(matr.index) - set(df.index)))
+    dist = dist.drop(list(set(matr.index) - set(df.index)), axis=1)
+    """
+
+
+    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
     app.layout = dbc.Container(fluid=True, children=[
     #<!-- header -->
         html.H1(children='Visual Analytics Demo'),
         html.Div(children='Explore multiple data sets with Dash.'),
         html.Hr(),
+
         dbc.Row([
         #<!-- basic plot choices -->
             dbc.Col([
@@ -137,7 +158,7 @@ def basic_dash_network():
                             options=[
                                 {'label': name.capitalize(), 'value': name}
                                 #for name in ['grid', 'random', 'circle', 'cose', 'concentric', 'breadthfirst']
-                                for name in [                         
+                                for name in [
                                     'random',
                                     'grid',
                                     'circle',
@@ -196,7 +217,7 @@ def basic_dash_network():
                                 dbc.CardBody(
                                     html.P("Lorem Ipsum and all that.", className='card-text text-dark',
                                     id='node-selected')
-                                )   
+                                )
                             ]
                         )
                 ),
@@ -282,7 +303,7 @@ def basic_dash_network():
     def highlight_edges(node):
         if not node:
             return default_stylesheet
-        
+
         stylesheet = [
                             {
                                 'selector':'edge',
