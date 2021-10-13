@@ -16,7 +16,7 @@ Suggested: Create a conda environment to manage dependancies. This requires Anac
 conda env create -f environment.yml
 ```
 ### MacOS
-Conda environment files created on Ubuntu machine don't work properly on Mac. 
+Conda environment files created on Ubuntu machine don't work properly on Mac.
 For now, to install:
 ```
 conda create -n pagel2graph networkx
@@ -35,7 +35,7 @@ Expects as input a GraphML file where all nodes contain an "lr" attribute referr
 Given a GraphML file and a node of interest, filter the GraphML file to contain the node and any neighbors satisfying edge filtering criteria up to a specified depth.
 
 ```
-conda activate pagel2graph 
+conda activate pagel2graph
 
 python filter_graphml.py \\
  -i input_file_path \\
@@ -45,7 +45,7 @@ python filter_graphml.py \\
  -p maximum p value. Values higher than this will be filtered \\
  -o Output file name. \\
  ```
- 
+
 ### Dash Application
 
 ##### Configuration
@@ -74,9 +74,6 @@ conda activate pagel2graph
 `
 Then, type this command into your terminal from the root directory of the codebase:
 
-`python interactive_app.py`
+`python app.py`
 
 This will launch the Dash server. Next, simply open your favorite web browser and navigate to http://localhost:8050/ .
-
-
-

@@ -22,15 +22,15 @@ import plotly.express as px
 from components import *
 from utils import *
 
-ava_lr = pd.read_table('../data/efaecium_profile_LR_rerunNA.csv', sep=',', index_col=0)
-ava_p = pd.read_table('../data/efaecium_profile_pval_rerunNA.csv', sep=',', index_col=0)
-ave_lr = pd.read_table('../data/pagel_LR_featureVsHabitat.csv', sep=',', index_col=0)
-ave_p = pd.read_table('../data/pagel_pvalue_featureVsHabitat.csv', sep=',', index_col=0)
+ava_lr = pd.read_table('data/efaecium_profile_LR_rerunNA.csv', sep=',', index_col=0)
+ava_p = pd.read_table('data/efaecium_profile_pval_rerunNA.csv', sep=',', index_col=0)
+ave_lr = pd.read_table('data/pagel_LR_featureVsHabitat.csv', sep=',', index_col=0)
+ave_p = pd.read_table('data/pagel_pvalue_featureVsHabitat.csv', sep=',', index_col=0)
 
 node_items = [{'label': col, 'value': col} for col in ava_lr.columns]
 
 
-G = nx.graphml.read_graphml('../data/pagel_results_as_network_updated.graphml')
+G = nx.graphml.read_graphml('data/pagel_results_as_network_updated.graphml')
 default_stylesheet = [
                         {
                             'selector':'edge',
